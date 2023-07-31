@@ -20,7 +20,7 @@ def spin(msg, done):  # <2>
         write(status)
         flush()
         write('\x08' * len(status))  # <4>
-        if done.wait(.1):  # <5>
+        if done.wait(.1):  # <5> 如果done被设置，等待0.1s
             break
     write(' ' * len(status) + '\x08' * len(status))  # <6>
 
@@ -32,14 +32,14 @@ def slow_function():  # <7>
 
 
 def supervisor():  # <9>
-    done = threading.Event()
+    done = threading.Event()        # 创建一个事件对象，用于线程之间的通信，其他线程等待该事件对象被设置时，唤醒线程并继续执行
     spinner = threading.Thread(target=spin,
                                args=('thinking!', done))
-    print('spinner object:', spinner)  # <10>
-    spinner.start()  # <11>
+    print('spinner object:', spinner)  # <10>   打印线程对象
+    spinner.start()  # <11> 启动子线程
     result = slow_function()  # <12>
-    done.set()  # <13> 
-    spinner.join()  # <14>
+    done.set()  # <13> 设置信号done,唤醒等待该事件对象的子线程
+    spinner.join()  # <14> 等待子线程结束
     return result
 
 
