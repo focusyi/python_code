@@ -36,10 +36,10 @@ def get_flag(base_url, cc): # <2>
 
 
 @asyncio.coroutine
-def download_one(cc, base_url, semaphore, verbose):  # <3>
+def download_one(cc, base_url, semaphore, verbose):  # <3>asyncio.semaphore用于限制并发请求数量
     try:
-        with (yield from semaphore):  # <4>
-            image = yield from get_flag(base_url, cc)  # <5>
+        with (yield from semaphore):  # <4> 在 yield from 表达式中把 semaphore 当成上下文管理器使用，防止阻塞整个系统：如果 semaphore 计数器=0，在这里阻塞
+            image = yield from get_flag(base_url, cc)  # <5>退出with 语句后，semaphore 计数器的值会递减
     except web.HTTPNotFound:  # <6>
         status = HTTPStatus.not_found
         msg = 'not found'
@@ -60,16 +60,16 @@ def download_one(cc, base_url, semaphore, verbose):  # <3>
 @asyncio.coroutine
 def downloader_coro(cc_list, base_url, verbose, concur_req):  # <1>
     counter = collections.Counter()
-    semaphore = asyncio.Semaphore(concur_req)  # <2>
+    semaphore = asyncio.Semaphore(concur_req)  # <2> semaphore内部维护一个计数器，它的 acquire() 计数器+1和 release() 计数器-1方法会在协程访问共享资源时被调用。
     to_do = [download_one(cc, base_url, semaphore, verbose)
              for cc in sorted(cc_list)]  # <3>
 
-    to_do_iter = asyncio.as_completed(to_do)  # <4>
+    to_do_iter = asyncio.as_completed(to_do)  # <4> as_completed() 函数的参数是一个 Future 实例列表，返回值是一个迭代器，在期物运行结束后产出期物。
     if not verbose:
         to_do_iter = tqdm.tqdm(to_do_iter, total=len(cc_list))  # <5>
     for future in to_do_iter:  # <6>
         try:
-            res = yield from future  # <7>
+            res = yield from future  # <7> 从期物中获取结果，代替 yield future.result()
         except FetchError as exc:  # <8>
             country_code = exc.country_code  # <9>
             try:
