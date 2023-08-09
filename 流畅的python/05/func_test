@@ -1,0 +1,10 @@
+from inspect import signature
+
+def greet(name: str) -> str:
+    """Greet someone by name."""
+    return 'Hello, ' + name + '!'
+
+print(greet('Alice'))
+print(greet.__annotations__)
+sig = signature(greet)
+print(sig.return_annotation)
