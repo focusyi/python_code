@@ -37,3 +37,4 @@ class FrenchDeck2(collections.MutableSequence):
 # 导入时（加载并编译 frenchdeck2.py 模块时），Python 不会检查抽象方
 # 法的实现，在运行时实例化 FrenchDeck2 类时才会真正检查。
 F = FrenchDeck2()
+
